@@ -119,11 +119,11 @@ def main():
 
             num_of_workers = 0
             use_pin_memmory = False
-            train_dataloader = iter(DataLoader(dataset=train_dataset,
+            train_dataloader = DataLoader(dataset=train_dataset,
                                                batch_size=batch_size,
                                                shuffle=shuffleDatasets,
                                                drop_last=False,
-                                               num_workers=num_of_workers, pin_memory=use_pin_memmory))
+                                               num_workers=num_of_workers, pin_memory=use_pin_memmory)
             test_dataloader = iter(DataLoader(dataset=test_dataset,
                                               batch_size=batch_size,
                                               shuffle=shuffleDatasets,
@@ -272,11 +272,12 @@ def main():
                             try:
                                 currentBatch, currentBatch_labels = test_dataloader.__next__()
                             except StopIteration:
-                                iter(DataLoader(dataset=test_dataset,
-                                                batch_size=batch_size,
-                                                shuffle=shuffleDatasets,
-                                                drop_last=False,
-                                                num_workers=num_of_workers, pin_memory=use_pin_memmory))
+                                test_dataloader = iter(DataLoader(dataset=test_dataset,
+                                                                  batch_size=batch_size,
+                                                                  shuffle=shuffleDatasets,
+                                                                  drop_last=False,
+                                                                  num_workers=num_of_workers,
+                                                                  pin_memory=use_pin_memmory))
                                 currentBatch, currentBatch_labels = test_dataloader.__next__()
 
 
@@ -364,7 +365,7 @@ def main():
                         model.train(True)
                     ## end of training and validation
 
-
+            print("epoch is %s" % epoch)
             # print(numTotalMitoSamples ,
             # numTotalChromSamples ,
             # numCorrectMitoSamples ,
