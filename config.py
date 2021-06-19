@@ -2,7 +2,7 @@
 # Paths
 DATA_FOLDER = "Data/cancer_sample_data"
 MODEL_FOLDER_NAME = "results_onHek"
-MODELS_DIR = "Models/"
+MODELS_DIR = "Models"
 METADATA_FILENAME = 'test_signal_mapping_tuple.pkl'
 SUMMARY_FILENAME = 'summaryFile_Cliveome.csv'
 
