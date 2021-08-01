@@ -1,9 +1,12 @@
 import h5py
 from glob import glob
+import os
 import numpy as np
 from multiprocessing import Pool, cpu_count
 import pickle
 from tqdm import tqdm
+from pathlib import Path
+
 
 
 def get_signal_start_index(signal_array):
@@ -29,34 +32,48 @@ def is_valid_signal(signal_array):
 
 def read_multi_fast5(filename):
     with h5py.File(filename, 'r') as f:
-        for name, read in f.items():
-            yield name, read.get('Raw/Signal')
+        if 'Raw' in f:  # Single read file
+            for name, read in f.get('Raw/Reads').items():
+                yield name, read.get('Signal')
+        else:  # Multi read file
+            for name, read in f.items():
+                yield name, read.get('Raw/Signal')
 
 
 def handle_fast5_file(path):
     signals = []
-    for signal_name, signal_array in read_multi_fast5(path):
-        if is_valid_signal(signal_array):
-            signals.append(signal_name)
+    try:
+        for signal_name, signal_array in read_multi_fast5(path):
+            if is_valid_signal(signal_array):
+                signals.append(signal_name)
+    except:
+        print('fail ', path)
     return signals
 
 
 def main():
-    files = glob('/mnt/sda1/nanopore/non_tumor/fast5/' + '*pass*.fast5')
-    signals = []
-    pool = Pool(cpu_count())
+    import sys
+    folder = sys.argv[1]
+    files = list(Path(folder).rglob('*.fast5'))
+    files = [str(file) for file in files]
+    # files = glob('path' + '*.fast5')
+    pool = Pool(4)
     results = list(tqdm(pool.imap(handle_fast5_file, files), total=len(files)))
-    # results = pool.map(handle_fast5_file, files)
-    # res_dict = dict()
+    # results = []
+    # for file in tqdm(files, total=len(files)):
+    #     try:
+    #         results.append(handle_fast5_file(file))
+    #     except:
+    #         print('fail ', file)
+    #         results.append([])
+    # print(results)
     res_list = []
-    for i,f in enumerate(files):
+    for i, f in enumerate(files):
         for sig in results[i]:
             res_list.append((f, sig))
-            # res_dict[sig] = f
-    with open('test_signal_mapping_tuple.pkl', 'wb') as f:
+    with open(os.path.join(folder, 'signal_mapping_tuple.pkl'), 'wb') as f:
         pickle.dump(res_list, f)
-    pool.join()
-    pool.close()
+    # pool.join()
+    # pool.close()
 
 main()
-
