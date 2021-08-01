@@ -6,6 +6,7 @@ from multiprocessing import Pool, cpu_count
 import pickle
 from tqdm import tqdm
 from pathlib import Path
+from argparse import ArgumentParser
 
 
 
@@ -52,10 +53,16 @@ def handle_fast5_file(path):
 
 
 def main():
-    import sys
-    folder = sys.argv[1]
+    # folder = sys.argv[1]
+    parser = ArgumentParser()
+    parser.add_argument("folder", type=str, help="Folder to index fast5 files under.")
+    parser.add_argument('-l', '--limit', default=None, type=int, help='limit number of fast5 files in index.')
+    args = parser.parse_args()
+    folder = args.folder
     files = list(Path(folder).rglob('*.fast5'))
     files = [str(file) for file in files]
+    if args.limit:
+        files = files[:args.limit]
     # files = glob('path' + '*.fast5')
     pool = Pool(4)
     results = list(tqdm(pool.imap(handle_fast5_file, files), total=len(files)))
